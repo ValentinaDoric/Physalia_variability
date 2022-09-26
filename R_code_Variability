@@ -1,0 +1,82 @@
+library(raster)
+library(RStoolbox) # for image viewing and variability calculation
+library(ggplot2) # for ggplot plotting
+library(patchwork) # multiframe with ggplot2 graphs
+library(viridis)
+
+setwd("C:/lab/")
+
+sen <- brick("sentinel.png")
+
+# band1 = NIR
+# band2 = red
+# band3 = green
+
+# plot the image by the ggRGB function
+ggRGB(sen, 1, 2, 3, stretch="lin") # stretch is done automatically
+# hence:
+ggRGB(sen, 1, 2, 3)
+
+# Exercise: plot the two graphs one beside the other
+g1 <- ggRGB(sen, 1, 2, 3)
+g2 <- ggRGB(sen, 2, 1, 3)
+
+# Thanks to patchwork!: 
+g1+g2
+
+# 4 plots
+(g1+g2)/(g1+g2)
+
+# calculation of variability over NIR
+nir <- sen[[1]]
+
+sd3 <- focal(nir, matrix(1/9, 3, 3), fun=sd)#reci mu sliku koju gleda i onda matricu, 1/9 - unit, 3,3 - pikseli, sd - standardna devijacija
+
+clsd <- colorRampPalette(c('blue','green','pink','magenta','orange','brown','red','yellow'))(100) # 
+plot(sd3, col=clsd)
+
+# plotting with ggplot
+ggplot() + 
+geom_raster(sd3, mapping=aes(x=x, y=y, fill=layer))
+
+# with viridis
+ggplot() + 
+geom_raster(sd3, mapping =aes(x=x, y=y, fill=layer)) + 
+scale_fill_viridis() +
+ggtitle("Standard deviation by viridis package")
+
+--------------------------------------------------------------------------
+#BOJANJE!
+# cividis
+ggplot() + 
+geom_raster(sd3, mapping =aes(x=x, y=y, fill=layer)) + 
+scale_fill_viridis(option = "cividis") +
+ggtitle("Standard deviation by viridis package")
+
+# magma
+ggplot() + 
+geom_raster(sd3, mapping =aes(x=x, y=y, fill=layer)) + 
+scale_fill_viridis(option = "magma") +
+ggtitle("Standard deviation by viridis package")
+
+# inferno
+ggplot() + 
+geom_raster(sd3, mapping =aes(x=x, y=y, fill=layer)) + 
+scale_fill_viridis(option = "inferno") +
+ggtitle("Standard deviation by viridis package")
+-------------------------------------------------------------------------
+#isprobavamo veće veličine prozora i onda imamo veću vidljivost promjena, ali manju rezoluciju
+#to radimo zato što ne možemo vidjeti malu varijabilnost u nekim prostorima gdje je ona mala ili su ekotoni u pitanju
+
+sd5 <- focal(nir, matrix(1/25, 5, 5), fun=sd)
+ggplot() + 
+geom_raster(sd5, mapping =aes(x=x, y=y, fill=layer)) + 
+scale_fill_viridis(option = "magma") +
+ggtitle("Standard deviation by viridis package")
+
+sd7 <- focal(nir, matrix(1/49, 7, 7), fun=sd)
+ggplot() + 
+geom_raster(sd5, mapping =aes(x=x, y=y, fill=layer)) + 
+scale_fill_viridis(option = "inferno") +
+ggtitle("Standard deviation by viridis package")
+
